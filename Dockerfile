@@ -1,20 +1,18 @@
-# Build stage
-FROM golang:1.21 AS build
-
-# Set the Current Working Directory inside the container
+# Build the Go application
+FROM golang:1.21 AS go-build
 WORKDIR /app
-
-# Copy go mod and sum files
 COPY go.mod go.sum ./
-
-# Download all dependencies. Dependencies will be cached if the go.mod and go.sum files are not changed
 RUN go mod download
-
-# Copy the source from the current directory to the Working Directory inside the container
 COPY . .
-
-# Build the Go app
 RUN CGO_ENABLED=0 GOOS=linux go build -v -o main ./cmd/main
+
+# Build the Svelte frontend
+FROM node:16 AS svelte-build
+WORKDIR /app/svelte-frontend
+COPY svelte-frontend/package*.json ./
+RUN npm install
+COPY svelte-frontend/ ./
+RUN npm run build
 
 # Final stage
 FROM alpine:latest
@@ -22,11 +20,14 @@ FROM alpine:latest
 # Install CA certificates to allow HTTPS requests
 RUN apk --no-cache add ca-certificates
 
+# Copy the Go binary from go-build stage
+COPY --from=go-build /app/main /root/main
+
+# Copy the Svelte built assets from svelte-build stage
+COPY --from=svelte-build /app/svelte-frontend/public/build /root/static
+
 # Set the Current Working Directory inside the container
 WORKDIR /root/
-
-# Copy the pre-built binary from the previous stage
-COPY --from=build /app/main .
 
 # Expose port 8080 to the outside
 EXPOSE 8080

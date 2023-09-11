@@ -16,6 +16,12 @@ func main() {
 	}
 	router := gin.Default()
 
+	router.Static("/static", "./static")
+
+	router.GET("/", func(c *gin.Context) {
+		c.File("./static/index.html")
+	})
+
 	router.GET("/books", api.GetBooks)
 	router.GET("/books/:id", api.BookById)
 	router.POST("/books", api.CreateBook)
