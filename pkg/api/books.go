@@ -5,9 +5,10 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/j-jayes/go-backend-test/pkg/models"
 )
 
-var books = []book{
+var books = []models.Book{
 	{ID: "1", Title: "In Search of Lost Time", Author: "Marcel Proust", Quantity: 2},
 	{ID: "2", Title: "The Great Gatsby", Author: "F. Scott Fitzgerald", Quantity: 5},
 	{ID: "3", Title: "War and Peace", Author: "Leo Tolstoy", Quantity: 6},
@@ -17,9 +18,9 @@ func GetBooks(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, books)
 }
 
-func bookById(c *gin.Context) {
+func BookById(c *gin.Context) {
 	id := c.Param("id")
-	book, err := getBookById(id)
+	book, err := GetBookById(id)
 
 	if err != nil {
 		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "Book not found."})
@@ -29,7 +30,7 @@ func bookById(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, book)
 }
 
-func checkoutBook(c *gin.Context) {
+func CheckoutBook(c *gin.Context) {
 	id, ok := c.GetQuery("id")
 
 	if !ok {
@@ -37,7 +38,7 @@ func checkoutBook(c *gin.Context) {
 		return
 	}
 
-	book, err := getBookById(id)
+	book, err := GetBookById(id)
 
 	if err != nil {
 		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "Book not found."})
@@ -53,7 +54,7 @@ func checkoutBook(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, book)
 }
 
-func returnBook(c *gin.Context) {
+func ReturnBook(c *gin.Context) {
 	id, ok := c.GetQuery("id")
 
 	if !ok {
@@ -61,7 +62,7 @@ func returnBook(c *gin.Context) {
 		return
 	}
 
-	book, err := getBookById(id)
+	book, err := GetBookById(id)
 
 	if err != nil {
 		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "Book not found."})
@@ -72,7 +73,7 @@ func returnBook(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, book)
 }
 
-func getBookById(id string) (*book, error) {
+func GetBookById(id string) (*models.Book, error) {
 	for i, b := range books {
 		if b.ID == id {
 			return &books[i], nil
@@ -82,8 +83,8 @@ func getBookById(id string) (*book, error) {
 	return nil, errors.New("book not found")
 }
 
-func createBook(c *gin.Context) {
-	var newBook book
+func CreateBook(c *gin.Context) {
+	var newBook models.Book
 
 	if err := c.BindJSON(&newBook); err != nil {
 		return
